@@ -16,15 +16,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(cors());
 
+// Trust proxy for Render
+app.set('trust proxy', 1);
+
 // Session configuration
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: true, // HTTPS only
+        secure: process.env.NODE_ENV === 'production', // Only require secure in production
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 // 24 hours
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
+        sameSite: 'strict'
     }
 }));
 
@@ -49,7 +53,7 @@ app.get('/', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
-    if (username === 'host' && password === 'password') {
+    if (username === 'host' && password === 'password') { // CHANGE THESE!
         req.session.authenticated = true;
         res.json({ success: true });
     } else {
